@@ -25,7 +25,7 @@ class Imagem:
             arq = open(self.arqEntrada, 'r')
 
         except:
-            print('O caminho do arquivo inserido não existe.')
+            #print('O caminho do arquivo inserido não existe.')
             self.working = False
             return None
 
@@ -71,37 +71,31 @@ class Imagem:
             self.dimension = (self.height, self.width*3)
             self.matrix = np.zeros(self.dimension, np.int64)
 
-            print(self.matrix)
-
             for i in range(self.height):
                 for j in range(self.width):
-                    print(i, (j*3),':',(j*3)+3)
-                    print(self.matrix[i, (j*3):(j*3)+3])
-                    print(imgList[index*3:index*3+3])
                     self.matrix[i, (j*3):(j*3)+3] = imgList[index*3:index*3+3]
                     index += 1
 
-        print(self.matrix)
+        #print(self.matrix)
 
         arq.close()
     
-    def matrix_to_image_data(self, matrix, arqSaida):
+    def matrix_to_image_data(self, matrix, arqSaida, width, height):
 
         matrixList = matrix.tolist()
 
         with open(arqSaida, 'w+') as arq:
             
             arq.write(str(self.type)+'\n')
-            arq.write(str(self.dimension[1])+' '+str(self.dimension[0])+'\n')
+            arq.write(str(width)+' '+str(height)+'\n')
             arq.write(str(self.maxPixelValue)+'\n')
-
-            #print(matrixList)
 
             for line in matrixList:
                 for element in line:
                     arq.write(str(element)+' ')
                 arq.write('\n')
                 
+            arq.close()
             
             
 # Classe ImagemPGM herda a classe Imagem
@@ -112,7 +106,7 @@ class ImagemPGM(Imagem):
         super().__init__(arqEntrada) #Não alterar essa linha
         
         if self.type != 'P2': 
-            print('A estrutura do arquivo não corresponde à classe invocada.')
+            #print('A estrutura do arquivo não corresponde à classe invocada.')
             self.working=False
         
 
@@ -128,9 +122,9 @@ class ImagemPGM(Imagem):
                 newPixelValue = self.matrix[i,j]+valor if self.matrix[i,j]+valor<self.maxPixelValue else self.maxPixelValue
                 result_matrix[i, j]= newPixelValue
 
-        print(result_matrix)
+        #print(result_matrix)
 
-        self.matrix_to_image_data(result_matrix, arqSaida)
+        self.matrix_to_image_data(result_matrix, arqSaida, self.width, self.height)
 
         return True
 
@@ -147,10 +141,9 @@ class ImagemPGM(Imagem):
 
                 result_matrix[i, j]= self.matrix[i,self.width-j-1]
 
-        print(result_matrix)
+        #print(result_matrix)
 
-        self.matrix_to_image_data(result_matrix, arqSaida)
-        print(self.matrix.shape)
+        self.matrix_to_image_data(result_matrix, arqSaida, self.width, self.height)
 
         return True
 
@@ -163,36 +156,46 @@ class ImagemPGM(Imagem):
 class ImagemPPM(Imagem):
 
     def __init__(self,arqEntrada):
-        # Recebe o nome do arquivo de entrada
-        # e cria o atributo arqEntrada chamando o construtora
-        # da classe imagem.
+
         super().__init__(arqEntrada) #Não alterar essa linha
-        # Pode editar a partira daqui para criar outros atributos, se desejar.
 
-    ################################################
-    ####### ----  EDITAR A PARTIR DAQUI  ---- ######
-    ################################################
+        if self.type != 'P3': 
+            #print('A estrutura do arquivo não corresponde à classe invocada.')
+            self.working=False
 
-    # Método que espelha uma imagem PPM
-    # Seu método deve abrir o arquivo de entrada
-    # e criar o arquivo de saída.
-    # Caso o arquivo de entrada não exista ou seja inválido,
-    # retornar False.
+
     def espelha(self,arqSaida):
-        ok=True
-        ## Escreva seu código aqui.
-    
-        return ok
 
-    # Método que rotaciona 90o uma imagem PPM
-    # Seu método deve abrir o arquivo de entrada
-    # e criar o arquivo de saída.
-    # Caso o arquivo de entrada não exista ou seja inválido,
-    # retornar False.
+        if not self.working:
+            return False
+    
+        result_matrix = np.zeros(self.dimension, np.int64)
+
+        for i in range(self.height):
+            for j in range(self.width):
+
+                result_matrix[i, j*3:(j*3)+3]= self.matrix[i,(self.width-j-1)*3:((self.width-j-1)*3)+3]
+
+        #print(result_matrix)
+
+        self.matrix_to_image_data(result_matrix, arqSaida, self.width, self.height)
+
+        return True
+
     def rotaciona90(self,arqSaida):
-        ok=True
-        ## Escreva seu código aqui.
+        if not self.working:
+            return False
     
-        return ok
+        result_matrix = np.zeros((self.width, self.height*3), np.int64)
 
-    ## Podem ser criados outros métodos
+        print(self.matrix)
+        for i in range(self.height):
+            for j in range(self.width):
+
+                result_matrix[2-j, (i*3):(i*3)+3] = self.matrix[i, j*3:(j*3)+3]
+
+        print(result_matrix)
+
+        self.matrix_to_image_data(result_matrix, arqSaida, self.height, self.width)
+
+        return True
